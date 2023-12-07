@@ -26,14 +26,10 @@ function UseCanva() {
     y: 0
   })
 
-  function drawOnCanva(x: number, y: number) {
-    if (canvaRef.current) {
-      const canva = canvaRef.current.getContext("2d") as CanvasRenderingContext2D
-      canva.moveTo(0, 0)
-      canva.lineTo(x, y)
-      canva.stroke()
-    }
-  }
+  const [canvaXY, setCanvaXY] = useState({
+    x: 0,
+    y: 0
+  })
 
   const drawPoint = useCallback((x: number, y: number, eraser: boolean = false) => {
     if (canvaRef.current) {
@@ -51,10 +47,6 @@ function UseCanva() {
     }
   }
 
-  const [canvaXY, setCanvaXY] = useState({
-    x: 0,
-    y: 0
-  })
 
   const handleChangeCanva = useCallback(() => {
     if (clientHolding) {
@@ -119,10 +111,6 @@ function UseCanva() {
         <input type="number" value={canvaXY.x} onChange={(ev) => setCanvaXY(prev => ({...prev, x: ev.target.valueAsNumber}))}/>
         <span className="text-white">Y</span>
         <input type="number" value={canvaXY.y} onChange={(ev) => setCanvaXY(prev => ({...prev, y: ev.target.valueAsNumber}))}/>
-        <button
-          onClick={() => drawOnCanva(canvaXY.x, canvaXY.y)}
-          className="text-white"
-        >XY</button>
 
         <button className={btnStyle} onClick={resetCanva}>Reset</button>
       </div>
