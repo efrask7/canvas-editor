@@ -1,0 +1,7 @@
+.tool {
+  position: absolute;
+  border: 1px solid #232323;
+  opacity: .8;
+  background: transparent;
+  pointer-events: none;
+}
