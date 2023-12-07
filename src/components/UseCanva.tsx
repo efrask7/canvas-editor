@@ -96,6 +96,15 @@ function UseCanva() {
     })
   }
 
+  function handleMouseLeave() {
+    setCanvaSettings(prev => ({...prev, hover: false}))
+    setClientHolding(false)
+  }
+
+  function handleMouseEnter() {
+    setCanvaSettings(prev => ({...prev, hover: true}))
+  }
+
   return (
     <div className="flex gap-2 items-center">
       <div>
@@ -107,8 +116,8 @@ function UseCanva() {
           onMouseMove={handleMouseMove}
           onPointerDown={() => setClientHolding(true)}
           onPointerUp={() => setClientHolding(false)}
-          onPointerEnter={() => setCanvaSettings(prev => ({...prev, hover: true}))}
-          onPointerLeave={() => setCanvaSettings(prev => ({...prev, hover: false}))}
+          onPointerEnter={handleMouseEnter}
+          onPointerLeave={handleMouseLeave}
         />
       </div>
 
