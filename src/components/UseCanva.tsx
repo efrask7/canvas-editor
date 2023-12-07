@@ -31,6 +31,12 @@ function UseCanva() {
     y: 0
   })
 
+  function getDrawMouse(): boolean {
+    if (toolSelected === ToolList.mouse) return false
+  
+    return canvaSettings.hover
+  }
+
   const drawPoint = useCallback((x: number, y: number, eraser: boolean = false) => {
     if (canvaRef.current) {
       const canva = canvaRef.current.getContext("2d") as CanvasRenderingContext2D
@@ -91,7 +97,7 @@ function UseCanva() {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center">
+    <div className="flex gap-2 items-center">
       <div>
         <canvas 
           ref={canvaRef} 
@@ -105,66 +111,70 @@ function UseCanva() {
           onPointerLeave={() => setCanvaSettings(prev => ({...prev, hover: false}))}
         />
       </div>
+
+      <div className="flex flex-col gap-2">
+        <div className="text-black flex flex-col gap-1">
+          <span className="text-white">X:</span>
+          <input type="number" value={canvaXY.x} onChange={(ev) => setCanvaXY(prev => ({...prev, x: ev.target.valueAsNumber}))}/>
+          <span className="text-white">Y:</span>
+          <input type="number" value={canvaXY.y} onChange={(ev) => setCanvaXY(prev => ({...prev, y: ev.target.valueAsNumber}))}/>
+
+          <button className={btnStyle} onClick={resetCanva}>Reset</button>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <h5>Tools {toolSelected}</h5>
+          <button 
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.mouse)}
+          >
+            Mouse
+          </button>
+          <button
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.pencil)}
+          >
+            Lapiz
+          </button>
+          <button
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.eraser)}
+          >
+            Goma
+          </button>
+        </div>
+        <div className="flex flex-col gap-1">
+          <h5>Opciones:</h5>
+          <label htmlFor="mouseSize">Tamaño</label>
+          <input 
+            type="number" 
+            value={canvaSettings.size}
+            onChange={(ev) => setCanvaSettings(prev => ({...prev, size: ev.target.valueAsNumber}))}
+            className="text-black"
+          />
+          <label htmlFor="color">Color</label>
+          <input 
+            type="color"
+            id="color"
+            value={canvaSettings.color}
+            onChange={(ev) => setCanvaSettings(prev => ({...prev, color: ev.target.value}))} 
+          />
+        </div>
+
+        <div 
+          className={styles.tool}
+          style={{
+            left: clientPos.x,
+            top: clientPos.y,
+            width: canvaSettings.size + "px",
+            height: canvaSettings.size + "px",
+            display: getDrawMouse() ? "inline" : "none"
+          }}
+        />
+      </div>
+
+      </div>
       
-      <div className="text-black">
-        <span className="text-white">X</span>
-        <input type="number" value={canvaXY.x} onChange={(ev) => setCanvaXY(prev => ({...prev, x: ev.target.valueAsNumber}))}/>
-        <span className="text-white">Y</span>
-        <input type="number" value={canvaXY.y} onChange={(ev) => setCanvaXY(prev => ({...prev, y: ev.target.valueAsNumber}))}/>
-
-        <button className={btnStyle} onClick={resetCanva}>Reset</button>
-      </div>
-
-      <div>
-        <h5>Tools {toolSelected}</h5>
-        <button 
-          className={btnStyle}
-          onClick={() => setToolSelected(ToolList.mouse)}
-        >
-          Mouse
-        </button>
-        <button
-          className={btnStyle}
-          onClick={() => setToolSelected(ToolList.pencil)}
-        >
-          Lapiz
-        </button>
-        <button
-          className={btnStyle}
-          onClick={() => setToolSelected(ToolList.eraser)}
-        >
-          Goma
-        </button>
-      </div>
-      <div>
-        <h5>Opts</h5>
-        <label htmlFor="mouseSize">Tamaño</label>
-        <input 
-          type="number" 
-          value={canvaSettings.size}
-          onChange={(ev) => setCanvaSettings(prev => ({...prev, size: ev.target.valueAsNumber}))}
-          className="text-black"
-        />
-        <label htmlFor="color">Color</label>
-        <input 
-          type="color"
-          id="color"
-          value={canvaSettings.color}
-          onChange={(ev) => setCanvaSettings(prev => ({...prev, color: ev.target.value}))} 
-        />
-      </div>
-
-      <div 
-        className={styles.tool}
-        style={{
-          left: clientPos.x,
-          top: clientPos.y,
-          width: canvaSettings.size + "px",
-          height: canvaSettings.size + "px",
-          display: canvaSettings.hover ? "inline" : "none"
-        }}
-      />
-    </div>
   )
 }
 
