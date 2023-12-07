@@ -53,7 +53,6 @@ function UseCanva() {
     }
   }
 
-
   const handleChangeCanva = useCallback(() => {
     if (clientHolding) {
       const { x, y } = canvaXY
@@ -76,9 +75,9 @@ function UseCanva() {
     let leftCanva = 0
     let topCanva = 0
 
-    const clientSize = canvaRef.current?.getBoundingClientRect()
-    leftCanva = clientSize?.left as number
-    topCanva = clientSize?.top as number
+    const canvaSize = canvaRef.current?.getBoundingClientRect()
+    leftCanva = canvaSize?.left as number
+    topCanva = canvaSize?.top as number
 
     const offsetSize = canvaSettings.size / 2
 
@@ -91,8 +90,8 @@ function UseCanva() {
     })
 
     setClientPos({
-      x: ev.clientX - canvaSettings.size/2,
-      y: ev.clientY - canvaSettings.size/2
+      x: ev.clientX - offsetSize,
+      y: ev.clientY - offsetSize
     })
   }
 
