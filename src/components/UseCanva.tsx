@@ -153,12 +153,13 @@ function UseCanva() {
         </div>
         <div className="flex flex-col gap-1">
           <h5>Opciones:</h5>
-          <label htmlFor="mouseSize">Tamaño</label>
+          <label htmlFor="mouseSize">Tamaño ({canvaSettings.size})</label>
           <input 
-            type="number" 
+            type="range" 
+            min={1}
+            max={50}
             value={canvaSettings.size}
             onChange={(ev) => setCanvaSettings(prev => ({...prev, size: ev.target.valueAsNumber}))}
-            className="text-black"
           />
           <label htmlFor="color">Color</label>
           <input 
