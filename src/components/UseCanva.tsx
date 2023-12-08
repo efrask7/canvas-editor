@@ -75,8 +75,7 @@ function UseCanva() {
       
       canva.fillStyle = color
 
-      const width = canvaXY.x - clientHoldingFrom.x
-      const heigth = canvaXY.y - clientHoldingFrom.y
+      const { width, heigth } = getRectSize(clientHoldingFrom.x, canvaXY.x, clientHoldingFrom.y, canvaXY.y)
 
       canva.fillRect(clientHoldingFrom.x, clientHoldingFrom.y, width, heigth)
     }
@@ -125,8 +124,7 @@ function UseCanva() {
       
       canva.fillStyle = color
 
-      const width = canvaXY.x - clientHoldingFrom.x
-      const heigth = canvaXY.y - clientHoldingFrom.y
+      const { width, heigth } = getRectSize(clientHoldingFrom.x, canvaXY.x, clientHoldingFrom.y, canvaXY.y)
 
       canva.fillRect(clientHoldingFrom.x, clientHoldingFrom.y, width, heigth)
     }
@@ -171,7 +169,43 @@ function UseCanva() {
     const calcX = Math.abs(x2 - x1) * Math.abs(x2 - x1)
     const calcY = Math.abs(y2 - y1) * Math.abs(y2 - y1)
     const sumCalcXY = calcX + calcY
-    return Math.sqrt(sumCalcXY)
+    const res = Math.sqrt(sumCalcXY)
+    return res > 150
+            ? 150
+            : res
+  }
+
+  function getRectSize(x1: number, x2: number, y1: number, y2: number) {
+    const previewWidth = x2 - x1
+    const previewHeigth = y2 - y1
+
+    let width = 0
+    let heigth = 0
+
+    const getNegativeValue = (value: number) => {
+      return value < -300
+        ? -300
+        : value
+    }
+
+    const getPositiveValue = (value: number) => {
+      return value > 300
+        ? 300
+        : value
+    }
+
+    previewWidth < 0
+      ? width = getNegativeValue(previewHeigth)
+      : width = getPositiveValue(previewWidth)
+
+    previewHeigth < 0
+      ? heigth = getNegativeValue(previewHeigth)
+      : heigth = getPositiveValue(previewHeigth)
+
+    return {
+      width,
+      heigth
+    }
   }
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
