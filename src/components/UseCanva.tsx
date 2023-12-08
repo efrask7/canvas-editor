@@ -5,7 +5,8 @@ enum ToolList {
   mouse = "Mouse",
   pencil = "Lapiz",
   eraser = "Goma de Borrar",
-  line = "Linea"
+  line = "Linea",
+  rect = "Rectangulo"
 }
 
 const btnStyle = "px-2 border rounded bg-cyan-500 hover:bg-cyan-600"
@@ -66,6 +67,20 @@ function UseCanva() {
     }
   }, [canvaSettings, clientHoldingFrom])
 
+  const drawRect = useCallback(() => {
+    if (canvaRef.current) {
+      const canva = canvaRef.current?.getContext("2d") as CanvasRenderingContext2D
+      const { color } = canvaSettings
+      
+      canva.fillStyle = color
+
+      const width = canvaXY.x - clientHoldingFrom.x
+      const heigth = canvaXY.y - clientHoldingFrom.y
+
+      canva.fillRect(clientHoldingFrom.x, clientHoldingFrom.y, width, heigth)
+    }
+  }, [canvaSettings, clientHoldingFrom, canvaXY])
+
   const drawGhostline = useCallback(() => {
     if (canvaGhostRef.current) {
       const canva = canvaGhostRef.current?.getContext("2d") as CanvasRenderingContext2D | any
@@ -78,6 +93,21 @@ function UseCanva() {
       canva.strokeStyle = color
       canva.lineWidth = size
       canva.stroke()
+    }
+  }, [canvaSettings, clientHoldingFrom, canvaXY])
+
+  const drawGhostRect = useCallback(() => {
+    if (canvaGhostRef.current) {
+      const canva = canvaGhostRef.current?.getContext("2d") as CanvasRenderingContext2D | any
+      const { color } = canvaSettings
+      canva.reset()
+      
+      canva.fillStyle = color
+
+      const width = canvaXY.x - clientHoldingFrom.x
+      const heigth = canvaXY.y - clientHoldingFrom.y
+
+      canva.fillRect(clientHoldingFrom.x, clientHoldingFrom.y, width, heigth)
     }
   }, [canvaSettings, clientHoldingFrom, canvaXY])
 
@@ -110,22 +140,28 @@ function UseCanva() {
       if (toolSelected === ToolList.line) {
         drawGhostline()
       }
+
+      if (toolSelected === ToolList.rect) {
+        drawGhostRect()
+      }
     }
 
-    if (!clientHolding) {
-      if (toolSelected === ToolList.line && clientHoldingFrom.x !== 0) {
+    if (!clientHolding && clientHoldingFrom.x !== 0) {
+      if (toolSelected === ToolList.line) {
         drawLine(x, y)
-        setClientHoldingFrom({
-          x: 0,
-          y: 0
-        })
       }
-
-      if (!toolSelected) {
-
+      
+      
+      if (toolSelected === ToolList.rect) {
+        drawRect()
       }
+      
+      setClientHoldingFrom({
+        x: 0,
+        y: 0
+      })
     }
-  }, [canvaXY, clientHolding, toolSelected, drawPoint, clientHoldingFrom, drawLine, drawGhostline])
+  }, [canvaXY, clientHolding, toolSelected, drawPoint, clientHoldingFrom, drawLine, drawGhostline, drawGhostRect, drawRect])
 
   useEffect(() => {
     handleChangeCanva()
@@ -174,7 +210,7 @@ function UseCanva() {
   function handleMouseDown(ev: MouseEvent) {
     setClientHolding(true)
     
-    if (toolSelected === ToolList.line) {
+    if (toolSelected === ToolList.line || toolSelected === ToolList.rect) {
       const { x, y } = getCanvaSize(ev.clientX, ev.clientY)
       setClientHoldingFrom({
         x,
@@ -245,6 +281,12 @@ function UseCanva() {
             onClick={() => setToolSelected(ToolList.line)}
           >
             Linea
+          </button>
+          <button
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.rect)}
+          >
+            Rectangulo
           </button>
         </div>
         <div className="flex flex-col gap-1">
