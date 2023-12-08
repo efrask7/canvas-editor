@@ -6,7 +6,8 @@ enum ToolList {
   pencil = "Lapiz",
   eraser = "Goma de Borrar",
   line = "Linea",
-  rect = "Rectangulo"
+  rect = "Rectangulo",
+  circle = "Circulo"
 }
 
 const btnStyle = "px-2 border rounded bg-cyan-500 hover:bg-cyan-600"
@@ -81,6 +82,26 @@ function UseCanva() {
     }
   }, [canvaSettings, clientHoldingFrom, canvaXY])
 
+  const drawCircle = useCallback(() => {
+    if (canvaRef.current) {
+      const canva = canvaRef.current.getContext("2d") as CanvasRenderingContext2D
+      const { color } = canvaSettings
+      canva.fillStyle = color
+
+      canva.beginPath()
+
+      const { x, y } = clientHoldingFrom
+
+      const actualX = canvaXY.x
+      const actualY = canvaXY.y
+      
+      const radio = getCircleRadio(x, actualX, y, actualY)
+
+      canva.arc(x, y, radio, 0, 2 * Math.PI)
+      canva.fill()
+    }
+  }, [canvaSettings, clientHoldingFrom, canvaXY])
+
   const drawGhostline = useCallback(() => {
     if (canvaGhostRef.current) {
       const canva = canvaGhostRef.current?.getContext("2d") as CanvasRenderingContext2D | any
@@ -111,6 +132,27 @@ function UseCanva() {
     }
   }, [canvaSettings, clientHoldingFrom, canvaXY])
 
+  const drawGhostCircle = useCallback(() => {
+    if (canvaGhostRef.current) {
+      const canva = canvaGhostRef.current.getContext("2d") as CanvasRenderingContext2D | any
+      const { color } = canvaSettings
+      canva.reset()
+      canva.fillStyle = color
+
+      canva.beginPath()
+
+      const { x, y } = clientHoldingFrom
+
+      const actualX = canvaXY.x
+      const actualY = canvaXY.y
+      
+      const radio = getCircleRadio(x, actualX, y, actualY)
+
+      canva.arc(x, y, radio, 0, 2 * Math.PI)
+      canva.fill()
+    }
+  }, [canvaSettings, clientHoldingFrom, canvaXY])
+
   function resetCanva() {
     if (canvaRef.current) {
       const canva = canvaRef.current.getContext("2d") as any
@@ -125,6 +167,14 @@ function UseCanva() {
     }
   }
 
+  function getCircleRadio(x1: number, x2: number, y1: number, y2: number) {
+    const calcX = Math.abs(x2 - x1) * Math.abs(x2 - x1)
+    const calcY = Math.abs(y2 - y1) * Math.abs(y2 - y1)
+    const sumCalcXY = calcX + calcY
+    return Math.sqrt(sumCalcXY)
+  }
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleChangeCanva = useCallback(() => {
     const { x, y } = canvaXY
     if (clientHolding) {
@@ -144,6 +194,10 @@ function UseCanva() {
       if (toolSelected === ToolList.rect) {
         drawGhostRect()
       }
+
+      if (toolSelected === ToolList.circle) {
+        drawGhostCircle()
+      }
     }
 
     if (!clientHolding && clientHoldingFrom.x !== 0) {
@@ -155,13 +209,17 @@ function UseCanva() {
       if (toolSelected === ToolList.rect) {
         drawRect()
       }
+
+      if (toolSelected === ToolList.circle) {
+        drawCircle()
+      }
       
       setClientHoldingFrom({
         x: 0,
         y: 0
       })
     }
-  }, [canvaXY, clientHolding, toolSelected, drawPoint, clientHoldingFrom, drawLine, drawGhostline, drawGhostRect, drawRect])
+  }, [canvaXY, clientHolding, toolSelected, drawPoint, clientHoldingFrom, drawLine, drawGhostline, drawGhostRect, drawRect, drawGhostCircle, drawCircle])
 
   useEffect(() => {
     handleChangeCanva()
@@ -210,7 +268,7 @@ function UseCanva() {
   function handleMouseDown(ev: MouseEvent) {
     setClientHolding(true)
     
-    if (toolSelected === ToolList.line || toolSelected === ToolList.rect) {
+    if (toolSelected === ToolList.line || toolSelected === ToolList.rect || toolSelected === ToolList.circle) {
       const { x, y } = getCanvaSize(ev.clientX, ev.clientY)
       setClientHoldingFrom({
         x,
@@ -287,6 +345,12 @@ function UseCanva() {
             onClick={() => setToolSelected(ToolList.rect)}
           >
             Rectangulo
+          </button>
+          <button
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.circle)}
+          >
+            Circulo
           </button>
         </div>
         <div className="flex flex-col gap-1">
