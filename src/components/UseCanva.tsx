@@ -4,7 +4,8 @@ import styles from "../css/UseCanva.module.css"
 enum ToolList {
   mouse = "Mouse",
   pencil = "Lapiz",
-  eraser = "Goma de Borrar"
+  eraser = "Goma de Borrar",
+  line = "Linea"
 }
 
 const btnStyle = "px-2 border rounded bg-cyan-500 hover:bg-cyan-600"
@@ -12,8 +13,13 @@ const btnStyle = "px-2 border rounded bg-cyan-500 hover:bg-cyan-600"
 function UseCanva() {
 
   const canvaRef = useRef<HTMLCanvasElement>(null)
+  const canvaGhostRef = useRef<HTMLCanvasElement>(null)
 
   const [toolSelected, setToolSelected] = useState<ToolList>(ToolList.mouse)
+  const [clientHoldingFrom, setClientHoldingFrom] = useState({
+    x: 0,
+    y: 0
+  })
   const [clientHolding, setClientHolding] = useState(false)
   const [canvaSettings, setCanvaSettings] = useState({
     size: 5,
@@ -46,6 +52,35 @@ function UseCanva() {
     }
   }, [canvaSettings])
 
+  const drawLine = useCallback((x: number, y: number) => {
+    if (canvaRef.current) {
+      const canva = canvaRef.current.getContext("2d") as CanvasRenderingContext2D
+      const { size, color } = canvaSettings
+
+      canva.beginPath()
+      canva.moveTo(clientHoldingFrom.x, clientHoldingFrom.y)
+      canva.lineTo(x + size, y + size/2)
+      canva.strokeStyle = color
+      canva.lineWidth = size
+      canva.stroke()
+    }
+  }, [canvaSettings, clientHoldingFrom])
+
+  const drawGhostline = useCallback(() => {
+    if (canvaGhostRef.current) {
+      const canva = canvaGhostRef.current?.getContext("2d") as CanvasRenderingContext2D | any
+      const { size, color } = canvaSettings
+      canva.reset()
+
+      canva.beginPath()
+      canva.moveTo(clientHoldingFrom.x, clientHoldingFrom.y)
+      canva.lineTo(canvaXY.x + size, canvaXY.y + size/2)
+      canva.strokeStyle = color
+      canva.lineWidth = size
+      canva.stroke()
+    }
+  }, [canvaSettings, clientHoldingFrom, canvaXY])
+
   function resetCanva() {
     if (canvaRef.current) {
       const canva = canvaRef.current.getContext("2d") as any
@@ -53,9 +88,16 @@ function UseCanva() {
     }
   }
 
+  function resetGhostCanva() {
+    if (canvaGhostRef.current) {
+      const canva = canvaGhostRef.current.getContext("2d") as any
+      canva.reset()
+    }
+  }
+
   const handleChangeCanva = useCallback(() => {
+    const { x, y } = canvaXY
     if (clientHolding) {
-      const { x, y } = canvaXY
       
       if (toolSelected === ToolList.pencil) {
         drawPoint(x, y)
@@ -64,14 +106,32 @@ function UseCanva() {
       if (toolSelected === ToolList.eraser) {
         drawPoint(x, y, true)
       }
+
+      if (toolSelected === ToolList.line) {
+        drawGhostline()
+      }
     }
-  }, [canvaXY, clientHolding, toolSelected, drawPoint])
+
+    if (!clientHolding) {
+      if (toolSelected === ToolList.line && clientHoldingFrom.x !== 0) {
+        drawLine(x, y)
+        setClientHoldingFrom({
+          x: 0,
+          y: 0
+        })
+      }
+
+      if (!toolSelected) {
+
+      }
+    }
+  }, [canvaXY, clientHolding, toolSelected, drawPoint, clientHoldingFrom, drawLine, drawGhostline])
 
   useEffect(() => {
     handleChangeCanva()
   }, [handleChangeCanva])
 
-  function handleMouseMove(ev: MouseEvent) {
+  function getCanvaSize(clientX: number, clientY: number) {
     let leftCanva = 0
     let topCanva = 0
 
@@ -81,17 +141,24 @@ function UseCanva() {
 
     const offsetSize = canvaSettings.size / 2
 
-    const clientX = (ev.clientX - leftCanva) - offsetSize
-    const clientY = (ev.clientY - topCanva) - offsetSize
+    return {
+      x: (clientX - leftCanva) - offsetSize,
+      y: (clientY - topCanva) - offsetSize,
+      offset: offsetSize
+    }
+  }
+
+  function handleMouseMove(ev: MouseEvent) {
+    const { x, y, offset } = getCanvaSize(ev.clientX, ev.clientY)
 
     setCanvaXY({
-      x: clientX,
-      y: clientY
+      x,
+      y
     })
 
     setClientPos({
-      x: ev.clientX - offsetSize,
-      y: ev.clientY - offsetSize
+      x: ev.clientX - offset,
+      y: ev.clientY - offset
     })
   }
 
@@ -104,19 +171,42 @@ function UseCanva() {
     setCanvaSettings(prev => ({...prev, hover: true}))
   }
 
+  function handleMouseDown(ev: MouseEvent) {
+    setClientHolding(true)
+    
+    if (toolSelected === ToolList.line) {
+      const { x, y } = getCanvaSize(ev.clientX, ev.clientY)
+      setClientHoldingFrom({
+        x,
+        y
+      })
+    }
+  }
+
+  function handleMouseUp() {
+    setClientHolding(false)
+    resetGhostCanva()
+  }
+
   return (
     <div className="flex gap-2 items-center">
-      <div>
+      <div className="relative">
         <canvas 
           ref={canvaRef} 
           width={800} 
           height={600} 
           className="border rounded bg-white"
           onMouseMove={handleMouseMove}
-          onPointerDown={() => setClientHolding(true)}
-          onPointerUp={() => setClientHolding(false)}
+          onPointerDown={handleMouseDown}
+          onPointerUp={handleMouseUp}
           onPointerEnter={handleMouseEnter}
           onPointerLeave={handleMouseLeave}
+        />
+        <canvas
+          ref={canvaGhostRef}
+          width={800}
+          height={600}
+          className={styles.ghost}
         />
       </div>
 
@@ -149,6 +239,12 @@ function UseCanva() {
             onClick={() => setToolSelected(ToolList.eraser)}
           >
             Goma
+          </button>
+          <button
+            className={btnStyle}
+            onClick={() => setToolSelected(ToolList.line)}
+          >
+            Linea
           </button>
         </div>
         <div className="flex flex-col gap-1">
